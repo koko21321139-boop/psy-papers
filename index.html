@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>精神科 新着論文</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#3b4a6b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="新着論文">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<style>
+:root{
+  /* layout: 固定ヘッダー（テーマのタブ＋絞り込み）→ 論文カードの一覧。カード左端の色帯で研究デザインを示す */
+  --paper:#f1f2f6; --surface:#ffffff; --ink:#1b2130; --muted:#5f6880; --line:#d8dbe5;
+  --accent:#3b4a6b; --accent-soft:#e6e9f2; --on-accent:#ffffff;
+  --gl:#7a3e9d; --rct:#1f6f8b; --ma:#2c7a4c; --co:#9a6200; --ot:#8a90a2; --star:#c98a00;
+  --body:"Hiragino Sans","Yu Gothic UI","Yu Gothic",system-ui,sans-serif;
+  --serif:"Hiragino Mincho ProN","Yu Mincho",Georgia,serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#12151c; --surface:#1b202a; --ink:#e7e9ef; --muted:#9aa2b6; --line:#2d3442;
+  --accent:#a9b7dc; --accent-soft:#252d40; --on-accent:#121722;
+  --gl:#c79be0; --rct:#7cc3dc; --ma:#7fcf9e; --co:#e3b55e; --ot:#8f96a8; --star:#f0c24b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#12151c; --surface:#1b202a; --ink:#e7e9ef; --muted:#9aa2b6; --line:#2d3442;
+  --accent:#a9b7dc; --accent-soft:#252d40; --on-accent:#121722;
+  --gl:#c79be0; --rct:#7cc3dc; --ma:#7fcf9e; --co:#e3b55e; --ot:#8f96a8; --star:#f0c24b; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.55;-webkit-text-size-adjust:100%}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+header{position:sticky;top:0;z-index:10;background:var(--surface);border-bottom:1px solid var(--line);
+  padding:calc(env(safe-area-inset-top) + 10px) max(16px,env(safe-area-inset-right)) 8px max(16px,env(safe-area-inset-left))}
+.in{max-width:760px;margin:0 auto;display:grid;gap:8px}
+.top{display:flex;align-items:baseline;gap:8px}
+h1{font-family:var(--serif);font-size:19px;margin:0;flex:1}
+.upd{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+.tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:0 0 auto;border:0;background:none;padding:6px 10px 7px;border-bottom:3px solid transparent;color:var(--muted);font-size:14px;cursor:pointer;white-space:nowrap}
+.tab[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent);font-weight:700}
+.tab .today{font-size:10px;background:var(--accent);color:var(--on-accent);border-radius:999px;padding:0 6px;margin-left:4px;vertical-align:2px}
+.chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:4px 11px;font-size:13px;cursor:pointer;white-space:nowrap}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.search{width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:10px;background:var(--paper);font-size:16px}
+main{max-width:760px;margin:0 auto;padding:12px max(16px,env(safe-area-inset-right)) calc(32px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));display:grid;gap:10px}
+.sum{font-size:13px;color:var(--muted);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.day{font-size:12px;font-weight:700;color:var(--muted);margin-top:6px;letter-spacing:.04em}
+.card{background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--ot);border-radius:10px;padding:10px 12px;display:grid;gap:5px}
+.card.read{opacity:.6}
+.card[data-d="ガイドライン"]{border-left-color:var(--gl)} .card[data-d="RCT"]{border-left-color:var(--rct)}
+.card[data-d="メタ解析・SR"]{border-left-color:var(--ma)} .card[data-d="コホート"]{border-left-color:var(--co)} .card[data-d="臨床試験"]{border-left-color:var(--rct)}
+.meta{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;font-size:12px;color:var(--muted)}
+.pill{font-size:11px;font-weight:700;border-radius:999px;padding:1px 8px;background:var(--accent-soft);color:var(--accent);white-space:nowrap}
+.pill.d{color:var(--surface)}
+.card[data-d="ガイドライン"] .pill.d{background:var(--gl)} .card[data-d="RCT"] .pill.d,.card[data-d="臨床試験"] .pill.d{background:var(--rct)}
+.card[data-d="メタ解析・SR"] .pill.d{background:var(--ma)} .card[data-d="コホート"] .pill.d{background:var(--co)} .card[data-d="その他"] .pill.d{background:var(--ot)}
+.new{background:#d9480f;color:#fff}
+.jn{font-style:italic}
+.ttl{font-size:15px;font-weight:700;line-height:1.45;color:var(--ink);text-decoration:none}
+.ttl:hover{text-decoration:underline}
+.acts{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.act{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:3px 10px;font-size:13px;cursor:pointer}
+.act[aria-pressed="true"].st{color:var(--star);border-color:var(--star)}
+.act[aria-pressed="true"].rd{background:var(--accent-soft)}
+.lnk{font-size:13px;color:var(--accent)}
+.empty{text-align:center;color:var(--muted);padding:40px 10px}
+footer{font-size:11px;color:var(--muted);line-height:1.6;margin-top:10px}
+@media (prefers-reduced-motion:no-preference){.chip,.tab,.act{transition:background-color .12s,color .12s}}
+</style>
+</head>
+<body>
+<header>
+  <div class="in">
+    <div class="top"><h1>精神科 新着論文</h1><span class="upd" id="upd"></span></div>
+    <div class="tabs" id="tabs" role="tablist" aria-label="テーマ"></div>
+    <div class="chips" id="designs" role="group" aria-label="研究デザイン"></div>
+    <div class="chips" id="flags" role="group" aria-label="絞り込み"></div>
+    <input class="search" id="q" type="search" placeholder="タイトル・雑誌名で検索（例：clozapine、JAMA）" aria-label="検索">
+  </div>
+</header>
+<main id="list"><p class="empty">読み込み中…</p></main>
+
+<script>
+"use strict";
+/* ---- 設定 ---- */
+const WEEK = {1:'scz',2:'mood',3:'dem',4:'scz',5:'mood',6:'dev',0:'oth'};   // 曜日ごとのテーマ（日曜=0）
+const TOPIC_NAMES = {all:'すべて',scz:'統合失調症',mood:'気分障害',dem:'認知症',dev:'発達障害',oth:'その他'};
+const DESIGNS = ['すべて','ガイドライン','RCT','メタ解析・SR','コホート','臨床試験','その他'];
+const FLAGS = [['major','主要誌'],['jp','日本'],['star','★のみ'],['unread','未読のみ'],['new','新着のみ']];
+const KEY = 'psypapers.v1';
+
+/* ---- 端末に保存する状態（★・既読・前回の閲覧日） ---- */
+let st = {star:{}, read:{}, lastSeen:'', topic:null, design:'すべて', flags:{}};
+try { Object.assign(st, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) {}
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} };
+
+const jstToday = () => new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10);
+const todayTopic = WEEK[new Date(Date.now() + 9 * 3600e3).getUTCDay()];
+if (!st.topic) st.topic = todayTopic;
+const prevSeen = st.lastSeen;               // 「新着」は前回開いた日より後に追加された論文
+st.lastSeen = jstToday(); save();
+
+let DATA = {papers: [], updated: ''};
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const isNew = p => prevSeen ? p.added > prevSeen : p.added === jstToday();
+
+function renderControls() {
+  $('#tabs').innerHTML = Object.entries(TOPIC_NAMES).map(([k, n]) =>
+    `<button type="button" class="tab" role="tab" data-topic="${k}" aria-selected="${st.topic === k}">${n}${k === todayTopic ? '<span class="today">今日</span>' : ''}</button>`).join('');
+  $('#designs').innerHTML = DESIGNS.map(d => `<button type="button" class="chip" data-design="${d}" aria-pressed="${st.design === d}">${d}</button>`).join('');
+  $('#flags').innerHTML = FLAGS.map(([k, n]) => `<button type="button" class="chip" data-flag="${k}" aria-pressed="${!!st.flags[k]}">${n}</button>`).join('');
+}
+
+function filtered() {
+  const q = $('#q').value.trim().toLowerCase();
+  return DATA.papers.filter(p =>
+    (st.topic === 'all' || (p.topics || []).includes(st.topic)) &&
+    (st.design === 'すべて' || p.design === st.design) &&
+    (!st.flags.major || p.major) && (!st.flags.jp || p.jp) &&
+    (!st.flags.star || st.star[p.pmid]) && (!st.flags.unread || !st.read[p.pmid]) &&
+    (!st.flags.new || isNew(p)) &&
+    (!q || (p.title + ' ' + p.journal + ' ' + p.source + ' ' + p.authors).toLowerCase().includes(q)));
+}
+
+function card(p) {
+  const url = 'https://pubmed.ncbi.nlm.nih.gov/' + p.pmid + '/';
+  const tps = (p.topics || []).map(t => TOPIC_NAMES[t]).filter(Boolean).join('・');
+  return `<article class="card${st.read[p.pmid] ? ' read' : ''}" data-d="${esc(p.design)}">
+    <div class="meta"><span class="pill d">${esc(p.design)}</span>${isNew(p) ? '<span class="pill new">新着</span>' : ''}${p.major ? '<span class="pill">主要誌</span>' : ''}${p.jp ? '<span class="pill">日本</span>' : ''}<span>${esc(tps)}</span></div>
+    <a class="ttl" href="${url}" target="_blank" rel="noopener" data-open="${p.pmid}">${esc(p.title)}</a>
+    <div class="meta"><span class="jn">${esc(p.source || p.journal)}</span><span>${esc(p.pubdate || p.date)}</span><span>${esc(p.authors)}</span></div>
+    <div class="acts"><button type="button" class="act st" data-star="${p.pmid}" aria-pressed="${!!st.star[p.pmid]}">${st.star[p.pmid] ? '★ お気に入り' : '☆ お気に入り'}</button>
+      <button type="button" class="act rd" data-read="${p.pmid}" aria-pressed="${!!st.read[p.pmid]}">${st.read[p.pmid] ? '既読' : '未読'}</button>
+      <a class="lnk" href="${url}" target="_blank" rel="noopener" data-open="${p.pmid}">PubMed</a>${p.doi ? `<a class="lnk" href="https://doi.org/${esc(p.doi)}" target="_blank" rel="noopener" data-open="${p.pmid}">本文（DOI）</a>` : ''}</div>
+  </article>`;
+}
+
+function render() {
+  const list = filtered();
+  const nNew = list.filter(isNew).length;
+  let h = `<div class="sum"><span>${list.length}件${nNew ? `（新着 ${nNew}件）` : ''}</span><span>前回の閲覧：${prevSeen || '初回'}</span></div>`;
+  if (!DATA.papers.length) h += '<p class="empty">まだ論文データがありません。GitHub の Actions で「論文を集める」を実行してください。</p>';
+  else if (!list.length) h += '<p class="empty">条件に合う論文はありません。絞り込みを外してみてください。</p>';
+  let day = '';
+  list.forEach(p => { if (p.added !== day) { day = p.added; h += `<div class="day">${esc(day)} に追加</div>`; } h += card(p); });
+  h += `<footer>PubMed から毎朝自動で集めた書誌情報です（ガイドライン・RCT・メタ解析・系統的レビュー・コホート研究に絞り込み）。研究デザインはタイトルなどから自動で判定しており、誤りを含むことがあります。診療に用いる前に必ず原文を確認してください。★と既読はこの端末にのみ保存されます。</footer>`;
+  $('#list').innerHTML = h;
+}
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-topic],[data-design],[data-flag],[data-star],[data-read],[data-open]'); if (!b) return;
+  const d = b.dataset;
+  if (d.topic) st.topic = d.topic;
+  else if (d.design) st.design = d.design;
+  else if (d.flag) st.flags[d.flag] = !st.flags[d.flag];
+  else if (d.star) { if (st.star[d.star]) delete st.star[d.star]; else st.star[d.star] = 1; }
+  else if (d.read) { if (st.read[d.read]) delete st.read[d.read]; else st.read[d.read] = 1; }
+  else if (d.open) { st.read[d.open] = 1; save(); setTimeout(render, 300); return; }   // 開いた論文は既読にする
+  save(); if (d.topic || d.design || d.flag) renderControls(); render();
+  if (d.topic) window.scrollTo(0, 0);
+});
+$('#q').addEventListener('input', render);
+
+renderControls();
+fetch('data/papers.json', {cache: 'no-cache'}).then(r => r.ok ? r.json() : Promise.reject())
+  .then(d => { DATA = d; $('#upd').textContent = d.updated ? '更新 ' + d.updated : ''; render(); })
+  .catch(() => { $('#list').innerHTML = '<p class="empty">論文データを読み込めませんでした。通信状況を確認してください。</p>'; });
+
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  try { navigator.serviceWorker.register('sw.js').catch(function(){}); } catch (e) {}
+}
+</script>
+</body>
+</html>

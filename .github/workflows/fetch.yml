@@ -1,0 +1,32 @@
+name: 論文を集める
+
+on:
+  schedule:
+    - cron: '7 21 * * *'     # 毎日 6:07（日本時間）。GitHubの混雑で数十分遅れることがある
+  workflow_dispatch:          # Actions 画面の「Run workflow」で手動実行もできる
+
+permissions:
+  contents: write             # 集めた結果を data/papers.json としてコミットするため
+
+concurrency: fetch-papers
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: PubMed から新着論文を集める
+        run: python scripts/fetch.py
+        env:
+          NCBI_EMAIL: ${{ vars.NCBI_EMAIL }}
+      - name: 変更があればコミットする
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/papers.json
+          git diff --cached --quiet && echo "新着なし" && exit 0
+          git commit -m "論文データを更新（$(TZ=Asia/Tokyo date +%F)）"
+          git push
